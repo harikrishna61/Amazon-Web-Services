@@ -1,122 +1,70 @@
 """ Name: Bathala, Harikrishna
     ID: 1001415489
 """""
-import os
-import json
-import pyDes
-from flask import Flask, render_template, request, make_response
-import swiftclient.client as swiftclient
-import keystoneclient.v3 as keystoneclient
+import boto3
+from flask import Flask, render_template,request
 
+conn = boto3.resource('s3',aws_access_key_id = "",
 
-PORT = int(os.getenv('PORT', 80))
-app = Flask(__name__)
+                    aws_secret_access_key = "")
 
-if 'VCAP_SERVICES' in os.environ:
-    cred = json.loads(os.environ['VCAP_SERVICES'])['Object-Storage'][0]
-    credinfo=cred['credentials']
-    authurl = credinfo['auth_url'] + '/v3'
-    projectId = credinfo['projectId']
-    region = credinfo['region']
-    userId = credinfo['userId']
-    password = credinfo['password']
-    projectname = credinfo['project']
-    domainName = credinfo['domainId']
-    conn = swiftclient.Connection(key=password, authurl=authurl, auth_version='3',
-                                  os_options={"project_id": projectId, "user_id": userId, "region_name": region})
+app=Flask(__name__)
 
-
-
-@app.route('/',methods=['GET','POST'])
-def root():
+@app.route('/',methods=['POST','GET'])
+def start():
     return render_template("index.html")
-
-
-@app.route('/createcontiner',methods=['GET','POST'])
-def createcontainer():
-    container_name =request.form['containername']
-    conn.put_container(container_name)
-    return render_template("index.html")
-
-@app.route('/displaycontainers',methods=["GET",'POST'])
-def displaycontainers():
-    container_list=[]
-    for container in conn.get_account()[1]:
-        container_list.append(container['name'])
-    return render_template("index.html",container_list=container_list)
-
-@app.route('/deletecontainer',methods=["GET",'POST'])
-def deletecontainers():
-    container_name=request.form['getdeletecontainer']
-    conn.delete_container(container_name)
-    return render_template("index.html")
-
-@app.route('/upload_file',methods=['GET','POST'])
+@app.route("/upload", methods=["POST","GET"])
 def upload():
+    type=request.form['ftype']
+    f=request.files['file']
+    mdat=request.form['md']
+    fnam=f.filename
+    fname_list=fnam.split('.')
 
-    if request.method== 'POST':
-        container_name=request.form['uploadcontainername']
-        f=request.files['file']
-        data = f.stream.read()
-        conn.put_object(container_name,
-                        f.filename,
-                        contents=encod(data,'qweasdzx'),
-                        content_type='text/plain')
+    if type=='txt' and fname_list[1]=='txt':
+        filecontents=f.stream.read()
+        conn.Object('bucktxt', f.filename).put(Body=filecontents,Metadata={'dat':"%s"%mdat})
+        return render_template("index.html",msg="File uploaded successfully")
 
-        return render_template("index.html",msg="File uploaded suceesfully")
-
-def encod(data, password):
-    k = pyDes.des(password, pyDes.CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
-    d = k.encrypt(data)
-    return d
-
-def decod(data, password):
-    password = password.encode('ascii')
-    k = pyDes.des(password, pyDes.CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
-    d = k.decrypt(data)
-    return d
+    elif type=='others':
+        filecontents = f.stream.read()
+        conn.Object('buckothers', f.filename).put(Body=filecontents,Metadata={'dat':"%s"%mdat})
+        return render_template("index.html",msg = "File uploaded successfully")
 
 
+    else:
 
-@app.route('/download_file',methods=['GET','POST'])
+        return render_template("index.html",msg="Type Mismatch")
+
+@app.route("/downloadfile", methods=["POST","GET"])
 def download():
-        container_name=request.form['downloadcontainername']
-        filenme=request.form['downloadingfile']
-        obj = conn.get_object(container_name, filenme)
-        file_contents = obj[1]
-        actual_file=decod(file_contents,'qweasdzx')
-
-        if request.method == 'POST' :
-            response = make_response(actual_file)
-            response.headers["Content-Disposition"] = "attachment; filename=%s"%filenme
-            return response
-
-
-@app.route('/displaydata',methods=['GET','POST'])
-def displayingdata():
-    container_name = request.form['containnmae']
-    object_name=request.form['objecname']
-    data=conn.get_object(container_name,object_name)
-    file_contents=data[1]
-    return render_template("index.html",file_contents=file_contents)
-
-
-@app.route('/listfiles',methods=['GET','POST'])
-def displayfilesfromcontainer():
-    container_name=request.form['conname']
-    object_list=[]
-    for data in conn.get_container(container_name)[1]:
-        object_list.append(data['name'])
-        object_list.append(data['bytes'])
-        object_list.append(data['last_modified'])
-    return render_template("index.html",object_list=object_list)
-
-@app.route("/deleteobjects",methods=['GET','POST'])
-def deleteobjects():
-    container_name=request.form['deleteconater']
-    obj_name=request.form['objname']
-    conn.delete_object(container_name, obj_name)
+    BUCKET_NAME=request.form['bucketname']
+    KEY =request.form['downloadingfile']
+    bucket=conn.Bucket(BUCKET_NAME)
+    bucket.download_file(KEY,KEY)
     return render_template("index.html")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(PORT), threaded=True, debug=False)
+@app.route("/delete",methods=["POST","GET"])
+def deletefiles():
+    BUCKET_NAME = request.form['bname']
+    KEY = request.form['fname']
+    conn.Object(BUCKET_NAME,KEY).delete()
+    return render_template("index.html")
+@app.route('/listfiles',methods=["POST","GET"])
+def listfiles():
+    BUCKET_NAME = request.form['buckname']
+    fileslist=[]
+    for bucket in conn.buckets.all():
+        if  bucket.name==BUCKET_NAME :
+            for k in bucket.objects.all():
+                fileslist.append(k.key)
+                fileslist.append(k.last_modified)
+    return render_template("index.html",fileslist=fileslist)
+
+
+if __name__=='__main__':
+    # app.run(host='0.0.0.0', port=int(8080), threaded=True, debug=True)
+    app.run(debug=True)
+
+
+

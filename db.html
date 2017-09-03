@@ -1,0 +1,102 @@
+<!--Name: Bathala, Harikrishna-->
+ <!--ID: 1001415489-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+<h1 align="center">WELCOME</h1>
+<h4>Harikrishna bathala</h4>
+<h4>1001415489</h4>
+<h4>Upload csv</h4>
+<form action="/uploadcsv" method="post" enctype="multipart/form-data">
+
+    <input type="file" name="file" >
+    <input type="submit" name="upcsvsub" id="upcsvsub" />
+</form>
+
+<hr>
+<h4>delete</h4>
+<form action="/delete" method="post" >
+    <input type="text" name="deleyear" id="deleyear" />
+    <input type="submit" name="delsub" id="delsub" />
+</form>
+
+<hr>
+<h4>Listing no of entries</h4>
+<form action="/entries" method="post">
+    <input type="submit" name="entr" id="entr">
+    <ul>
+        {% for fname in data %}
+        <li>{{ fname }}</li>
+        {% endfor %}
+    </ul>
+</form>
+<hr>
+<h4>STATes</h4>
+<form action="/state" method="post" >
+    <input type="text" name="st" id="st"/>
+    <input type="submit" name="sua" id="sua" />
+
+<ul>
+        {% for fname in statename %}
+        <li>{{ fname }}</li>
+        {% endfor %}
+    </ul>
+</form>
+<hr>
+<form action="/latt" method="post">
+    <input type="text" name="lati" id="lati" />
+    <input type="text" name="longi" id="longi"/>
+    <input type="submit" id="latsub" name="latsub" />
+<ul>
+        {% for fname in univname %}
+        <li>{{ fname }}</li>
+        {% endfor %}
+</ul>
+
+</form>
+<h4>Upload data to db</h4>
+<form action="/upload" method="post">
+   <p>Park Name</p> <input type="text" name="parkname" id="parkname" /><br>
+
+    <p>Park state</p><input type="text" name="parkstate" id="parkstate" /><br>
+
+    <p>Park year</p><input type="text" name="parkyear" id="parkyear" /><br>
+
+    <p>Park area</p><input type="text" name="parkarea" id="parkarea" /><br>
+    <br>
+    <input type="submit" name="parsub" id="parsub" /><br>
+</form>
+<hr>
+<h4>Display data</h4>
+<form action="/display" method="post">
+    <input type="submit" name="dissub" id="dissub" />
+
+    <ul>
+        {% for fname in data %}
+        <li>{{ fname }}</li>
+        {% endfor %}
+    </ul>
+<hr>
+</form>
+<form action="/uploadimage" method="post" enctype="multipart/form-data">
+    <input type="text" name="imageid" id="imageid" />
+    <input type="file" name="file">
+    <input type="submit" name="upsub" id="upsub">
+</form>
+<hr>
+<h4>Downloading image from db</h4>
+<form action="/downloaimage" method="post">
+    <input type="text" name="imgid" id="imgid" >
+    <input type="submit" name="downimg" id="downimg"/>
+
+    <!--<ul>-->
+        <!--{% for fname in image %}-->
+        <!--<li>{{ fname }}</li>-->
+        <!--{% endfor %}-->
+    <!--</ul>-->
+</form>
+</body>
+</html>

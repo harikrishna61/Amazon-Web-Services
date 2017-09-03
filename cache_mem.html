@@ -1,0 +1,53 @@
+ <!--Name: Bathala, Harikrishna-->
+ <!--ID: 1001415489-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+<h1 align="center"> WELCOME</h1>
+<h4>MEMCACHE</h4>
+<form action="/rdstime" method="post">
+
+    ITERATIONS: <input type="text" name="iterno" id="iterno"><br><br>
+    State Name: <input type="text" name="statename" id="statename"><br><br>
+
+    ID (L/G/E): <input type="text" name="opera" id="opera" /><br><br>
+    ID value:   <input type="text" name="idval" id="idval" /><br><br>
+            <input type="submit" name="rdssub" id="rdssub" /><br><br>
+
+    Time taken for RDS is : {{differrnce}}
+
+</form>
+
+<hr>
+<form action="/memcachetime" method="post">
+
+    ITERATIONS: <input type="text" name="iterations" id="iterations"><br><br>
+    State Name: <input type="text" name="memstatename" id="memstatename"><br><br>
+    ID (L/G/E): <input type="text" name="memopera" id="memopera" /><br><br>
+    ID value:   <input type="text" name="memidval" id="memidval" /><br><br>
+
+    <input type="submit" name="memsub" id="memsub" />
+
+    <p>Time taken for memcache is : </p>{{differrnce1}}
+</form>
+<br>
+<h4>Show result</h4>
+<form action="/results" method="post" >
+
+    State Name: <input type="text" name="resstatename" id="resstatename"><br><br>
+    ID (L/G/E): <input type="text" name="resopera" id="resopera" /><br><br>
+    ID value:   <input type="text" name="residval" id="residval" /><br><br>
+
+    <input type="submit" name="ressub" id="ressub" />
+    <ul>
+        {% for fname in data %}
+        <li>{{ fname }}</li>
+        {% endfor %}
+    </ul>
+</form>
+
+</body>
+</html>
